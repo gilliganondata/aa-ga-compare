@@ -135,7 +135,7 @@ for (i in 1:length(metrics$label)){
 
 # Define theme for the line charts
 default_theme <-   theme_bw() +
-  theme(axis.text = element_text(size = 10, colour = "gray50"),
+  theme(axis.text = element_text(size = 10, colour = "grey50"),
         axis.title = element_blank(),
         axis.ticks = element_blank(),
         axis.line.x = element_line(colour = "grey30"),
@@ -160,14 +160,16 @@ summary_results <- function(metric){
 
   # Create a boxplot to summarize the differences 
   boxplot_gg <- ggplot(summary_set, aes(x = 0, y=Diffs)) + 
-    geom_boxplot(fill='#A4A4A4', color="grey50") +
+    geom_boxplot(fill='#A4A4A4', color="grey50", outlier.colour= "grey70",
+                 outlier.fill = "grey70") +
+    geom_vline(aes(xintercept=0), color = "grey30", size = 1) +
     guides(fill=FALSE) + coord_flip() + default_theme +
     theme(panel.grid.major.x = element_line(colour = "grey90"),
           panel.grid.major.y = element_blank(),
           axis.text.y = element_blank(),
           axis.line = element_blank())
   
-  boxplot_diffs <- ggplotly(boxplot_gg, width = 900, height = 150)
+  boxplot_diffs <- ggplotly(boxplot_gg, width = 780, height = 180)
   
   # Create the base chart with actual values for each platform
   actuals_gg <- ggplot(data = master_data,
@@ -180,39 +182,28 @@ summary_results <- function(metric){
     scale_y_continuous(labels = comma)
   
   # Use Plotly to make it somewhat interactive
-  actuals <- ggplotly(actuals_gg, width = 900, height = 300)
-  
-  # Now, create a chart that shows the difference between the
-  # values by day in absolute terms.
-  totaldiff_gg <- ggplot(data = master_diffs,
-                         aes_string(x = "Date", y = paste0("`",metric," Total Diff`"))) +
-    geom_line(color = "grey50") +
-    labs(title = "Difference by Day (Adobe Analytics - Google Analytics)") +
-    default_theme +
-    scale_color_manual(values = "#DDDDDD") +
-    scale_y_continuous(labels = comma)
-  
-  # Use Plotly to make it somewhat interactive
-  totaldiff <- ggplotly(totaldiff_gg, width = 780, height = 200)
+  actuals <- ggplotly(actuals_gg, width = 900, height = 250)
   
   # Create a chart that shows the difference between the
   # values by day as a % of Adobe Analytics.
   percentdiff_gg <- ggplot(data = master_diffs,
                            aes_string(x = "Date", y = paste0("`",metric," Percent Diff`"))) +
-    geom_line(color = "grey50") +
+    geom_line(color = "grey60") +
+    geom_hline(aes(yintercept=0), color = "grey30", size = 0.5) +
     labs(title = "% Difference by Day") +
     default_theme +
+    theme(axis.line.x = element_blank(),
+          axis.title = element_blank()) +
     scale_color_manual(values = "#DDDDDD") +
     scale_y_continuous(labels = percent)
   
   # Use Plotly to make it somewhat interactive
-  percentdiff <- ggplotly(percentdiff_gg, width = 780, height = 200)
+  percentdiff <- ggplotly(percentdiff_gg, width = 780, height = 180)
   
   # Bundle up all the results to return
   results <- list(boxplot_diffs = boxplot_diffs,
                   daily_diffs = summary_set,
                   linechart_actuals = actuals,
-                  linechart_totaldiff = totaldiff,
                   linechart_percentdiff = percentdiff)
   
 }
@@ -221,7 +212,7 @@ summary_results <- function(metric){
 
 ## Overview
 
-The data below is for **`r start_date` to `r end_date`**.
+This report compares key metrics from Adobe Analytics to the comparable metrics from Google Analytics for as single site from **`r start_date` to `r end_date`**. For each metric, a boxplot shows the median, quartiles, and outliers of the _daily difference_ between Adobe Analytics and Google Analtyics for the metric. A line chart shows the _actual values reported_ for the metric from both platform. And, another line chart shows the _% difference_ between the results for each day (with the Adobe Analytics value as the basis).
 
 <!-- RMarkdown doesn't readily support loops for output like charts, 
 so you need to manually create a section for each metric being included.
@@ -237,12 +228,11 @@ to adjust the r code chunk names so that there aren't any duplicates. -->
 processed_results <- summary_results("UVs")
 ```
 
-The daily mean difference between the two platforms was **`r format(round(as.numeric(mean(processed_results$daily_diffs$Diffs)), 1), nsmall=1, big.mark=",")`**. The median difference was **`r format(round(as.numeric(median(processed_results$daily_diffs$Diffs)), 1), nsmall=1, big.mark=",")`**. The boxplot below shows the median, quartiles, and outliers.
+The mean daily difference between the two platforms was **`r format(round(as.numeric(mean(processed_results$daily_diffs$Diffs)), 1), nsmall=1, big.mark=",")`** unique visitors / users. The median daily difference was **`r format(round(as.numeric(median(processed_results$daily_diffs$Diffs)), 1), nsmall=1, big.mark=",")`** unique visitors / users. The boxplot below shows the median, quartiles, and outliers for the analyzed timeframe.
 
 ```{r uvs charts, echo = FALSE, fig.align = "center"}
 processed_results$boxplot_diffs
 processed_results$linechart_actuals
-processed_results$linechart_totaldiff
 processed_results$linechart_percentdiff
 ```
 
@@ -254,12 +244,11 @@ processed_results$linechart_percentdiff
 processed_results <- summary_results("Visits")
 ```
 
-The daily mean difference between the two platforms was **`r format(round(as.numeric(mean(processed_results$daily_diffs$Diffs)), 1), nsmall=1, big.mark=",")`**. The median difference was **`r format(round(as.numeric(median(processed_results$daily_diffs$Diffs)), 1), nsmall=1, big.mark=",")`**. The boxplot below shows the median, quartiles, and outliers.
+The mean daily difference between the two platforms was **`r format(round(as.numeric(mean(processed_results$daily_diffs$Diffs)), 1), nsmall=1, big.mark=",")`** visits / sessions. The median daily difference was **`r format(round(as.numeric(median(processed_results$daily_diffs$Diffs)), 1), nsmall=1, big.mark=",")`** visits / sessions. The boxplot below shows the median, quartiles, and outliers for the analyzed timeframe.
 
 ```{r visits charts, echo = FALSE, fig.align = "center"}
 processed_results$boxplot_diffs
 processed_results$linechart_actuals
-processed_results$linechart_totaldiff
 processed_results$linechart_percentdiff
 ```
 
@@ -271,12 +260,11 @@ processed_results$linechart_percentdiff
 processed_results <- summary_results("Pageviews")
 ```
 
-The daily mean difference between the two platforms was **`r format(round(as.numeric(mean(processed_results$daily_diffs$Diffs)), 1), nsmall=1, big.mark=",")`**. The median difference was **`r format(round(as.numeric(median(processed_results$daily_diffs$Diffs)), 1), nsmall=1, big.mark=",")`**. The boxplot below shows the median, quartiles, and outliers.
+The mean daily difference between the two platforms was **`r format(round(as.numeric(mean(processed_results$daily_diffs$Diffs)), 1), nsmall=1, big.mark=",")`** page views. The median daily difference was **`r format(round(as.numeric(median(processed_results$daily_diffs$Diffs)), 1), nsmall=1, big.mark=",")`** page views. The boxplot below shows the median, quartiles, and outliers for the analyzed timeframe.
 
 ```{r pageviews charts, echo = FALSE, fig.align = "center"}
 processed_results$boxplot_diffs
 processed_results$linechart_actuals
-processed_results$linechart_totaldiff
 processed_results$linechart_percentdiff
 ```
 
