@@ -1,0 +1,22 @@
+body{
+   font-size: 14px;
+}
+
+h1 { 
+ font-size: 24px !important;
+ color: DarkBlue;
+}
+
+h2 { 
+ font-size: 22px;
+ color: DarkBlue;
+}
+
+h3 { 
+ font-size: 18px;
+ color: DarkBlue;
+}
+
+hr {
+  border: 1px solid #ccc;
+}

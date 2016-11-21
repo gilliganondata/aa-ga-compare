@@ -1,6 +1,8 @@
 ---
 title: "Adobe Analytics / Google Analytics Comparison"
-output: html_document
+output:
+  html_document:
+    css: styles.css
 ---
 
 ```{r setup and data pull, include=FALSE}
@@ -162,8 +164,9 @@ summary_results <- function(metric){
   boxplot_gg <- ggplot(summary_set, aes(x = 0, y=Diffs)) + 
     geom_boxplot(fill='#A4A4A4', color="grey50", outlier.colour= "grey70",
                  outlier.fill = "grey70") +
-    geom_vline(aes(xintercept=0), color = "grey30", size = 1) +
-    guides(fill=FALSE) + coord_flip() + default_theme +
+    geom_vline(aes(xintercept=0), color = "grey30") +
+    guides(fill=FALSE) + coord_flip() + 
+    default_theme +
     theme(panel.grid.major.x = element_line(colour = "grey90"),
           panel.grid.major.y = element_blank(),
           axis.text.y = element_blank(),
@@ -189,7 +192,7 @@ summary_results <- function(metric){
   percentdiff_gg <- ggplot(data = master_diffs,
                            aes_string(x = "Date", y = paste0("`",metric," Percent Diff`"))) +
     geom_line(color = "grey60") +
-    geom_hline(aes(yintercept=0), color = "grey30", size = 0.5) +
+    geom_hline(aes(yintercept=0), color = "grey30", size = 0.25) +
     labs(title = "% Difference by Day") +
     default_theme +
     theme(axis.line.x = element_blank(),
@@ -210,9 +213,9 @@ summary_results <- function(metric){
 
 ```
 
-## Overview
+This report compares key metrics from Adobe Analytics to the comparable metrics from Google Analytics for a single site from **`r start_date` to `r end_date`**. For each metric, a boxplot shows the median, quartiles, and outliers of the _daily difference_ between Adobe Analytics and Google Analytics for the metric. A line chart shows the _actual values reported_ for the metric from both platforms. And, another line chart shows the _% difference_ between the results for each day (with the Adobe Analytics value as the basis).
 
-This report compares key metrics from Adobe Analytics to the comparable metrics from Google Analytics for as single site from **`r start_date` to `r end_date`**. For each metric, a boxplot shows the median, quartiles, and outliers of the _daily difference_ between Adobe Analytics and Google Analtyics for the metric. A line chart shows the _actual values reported_ for the metric from both platform. And, another line chart shows the _% difference_ between the results for each day (with the Adobe Analytics value as the basis).
+This report was built using R, and the code used to built it is [available here on Github](https://github.com/gilliganondata/aa-ga-compare). It can readily be customized to accommodate additional metrics as needed.
 
 <!-- RMarkdown doesn't readily support loops for output like charts, 
 so you need to manually create a section for each metric being included.
@@ -222,7 +225,7 @@ to adjust the r code chunk names so that there aren't any duplicates. -->
 
 --------
 
-### Unique Visitors / Users
+## Unique Visitors / Users
 
 ```{r uvs base, echo = FALSE, fig.align = "center"}
 processed_results <- summary_results("UVs")
@@ -238,7 +241,7 @@ processed_results$linechart_percentdiff
 
 --------
 
-### Visits / Sessions
+## Visits / Sessions
 
 ```{r visits base, echo = FALSE, fig.align = "center"}
 processed_results <- summary_results("Visits")
@@ -254,7 +257,7 @@ processed_results$linechart_percentdiff
 
 --------
 
-### Page Views
+## Page Views
 
 ```{r pageviews base, echo = FALSE, fig.align = "center"}
 processed_results <- summary_results("Pageviews")
