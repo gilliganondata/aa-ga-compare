@@ -6,8 +6,10 @@ output: html_document
 ```{r setup and data pull, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(RSiteCatalyst)       # Package for getting the Adobe Analytics data
-library(googleAnalyticsR)    # Pacakge for getting the Google Analytics data
+library(googleAnalyticsR)    # Package for getting the Google Analytics data
 library(tidyverse)           # Package(s) for manipulating and visualizing the data
+library(plotly)              # For better / interactive charts
+library(scales)              # For getting commas in numbers on y-axes
 
 # Configure settings. This requires three values be loaded as R environment variables.
 # This is typically set up in a .Renviron file, which would be a file structured as
@@ -34,7 +36,7 @@ end_date <- Sys.Date()-1
 # the metric's name in Adobe Analytics, and the third column is the metric's
 # name in Google Analytics
 metrics <- data.frame(
-  label = c("Unique Visitors/Users","Visits/Sessions","Page Views"),
+  label = c("Unique Visitors","Visits","Page Views"),
   adobe_analytics = c("uniquevisitors","visits","pageviews"),
   google_analytics = c("users","sessions","pageviews"),
   stringsAsFactors = FALSE)
@@ -117,11 +119,20 @@ line_theme <-   theme_bw() +
 # Set up function to actually plot the line charts
 
 line_chart <- function(metric){
-  ggplot(master_data) +
-    geom_line(mapping = aes(x = master_data$Date,
-                            y = metric,
-                            color = master_data$Platform)) +
-    line_theme
+  
+  # Create the base chart
+  gg_chart <- ggplot(data = master_data,
+                     aes_string(x = "Date", y = metric,
+                            color = "Platform")) +
+    geom_line() +
+    line_theme +
+    scale_color_manual(values = c("#009E73", "#D55E00")) +
+    scale_y_continuous(labels = comma)
+
+  # Output the chart using Plotly to make it somewhat interactive
+  ggplotly(gg_chart, width = 900)
+
+  
 }
 
 ```
@@ -135,7 +146,7 @@ The data below is for `r start_date` to `r end_date`.
 ### Unique Visitors / Users
 
 ```{r users viz, echo = FALSE, fig.width = 7, fig.height = 4, fig.align = "center"}
-line_chart(master_data$`Unique Visitors/Users`)
+line_chart("`Unique Visitors`")
 ```
 
 --------
@@ -143,7 +154,7 @@ line_chart(master_data$`Unique Visitors/Users`)
 ### Visits / Sessions
 
 ```{r visits viz, echo = FALSE, fig.width = 7, fig.height = 4, fig.align = "center"}
-line_chart(master_data$`Visits/Sessions`)
+line_chart("Visits")
 ```
 
 --------
@@ -151,6 +162,6 @@ line_chart(master_data$`Visits/Sessions`)
 ### Page Views
 
 ```{r page views viz, echo = FALSE, fig.width = 7, fig.height = 4, fig.align = "center"}
-line_chart(master_data$`Page Views`)
+line_chart("`Page Views`")
 ```
 
