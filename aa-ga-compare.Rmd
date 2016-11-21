@@ -1,0 +1,156 @@
+---
+title: "Adobe Analytics / Google Analytics Comparison"
+output: html_document
+---
+
+```{r setup and data pull, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(RSiteCatalyst)       # Package for getting the Adobe Analytics data
+library(googleAnalyticsR)    # Pacakge for getting the Google Analytics data
+library(tidyverse)           # Package(s) for manipulating and visualizing the data
+
+# Configure settings. This requires three values be loaded as R environment variables.
+# This is typically set up in a .Renviron file, which would be a file structured as
+# follows (without the "#" at the beginning of each line):
+
+# ADOBE_KEY="[username]:[account]"
+# ADOBE_SECRET="65f7XXXXXXXXXXXXXXXXXXXXXXXXXX"
+# ADOBE_RSID="XXXXXXXXXXXXXX"
+# GOOGLE_PROPERTY="XXXXXXXXXX"
+
+# Get the various values that will be used to access the data
+aa_key <- Sys.getenv("ADOBE_KEY")
+aa_secret <- Sys.getenv("ADOBE_SECRET")
+aa_rsid <- Sys.getenv("ADOBE_RSID")
+ga_view_id <- Sys.getenv("GOOGLE_VIEWID")
+
+# Set the start and end dates. These can be adjusted to be something other
+# than what is currently set below.
+start_date <- Sys.Date()-90
+end_date <- Sys.Date()-1
+
+# Set the metrics to be compared. This is set up as a data frame where the 
+# first column is the way the metric will be labeled, the second column is
+# the metric's name in Adobe Analytics, and the third column is the metric's
+# name in Google Analytics
+metrics <- data.frame(
+  label = c("Unique Visitors/Users","Visits/Sessions","Page Views"),
+  adobe_analytics = c("uniquevisitors","visits","pageviews"),
+  google_analytics = c("users","sessions","pageviews"),
+  stringsAsFactors = FALSE)
+
+###########################
+# Pull the Adobe Analytics Data
+###########################
+
+# Authenticate Adobe Analytics
+SCAuth(aa_key, aa_secret)
+
+# Get the data
+aa_data <- QueueOvertime(aa_rsid, start_date, end_date, 
+                         metrics$adobe_analytics,
+                         date.granularity = "day")
+
+# Remove the columns that aren't needed
+aa_data <- select(aa_data, -name, -year, -month, -day,
+                  -segment.id, -segment.name)
+
+# Change the date column to be Date format rather than POSIXlt
+aa_data$datetime <- as.Date(aa_data$datetime)
+
+# Rename the columns to be the label value (this is so it will
+# match when we do the same with the GA data)
+colnames(aa_data) <- c("Date", metrics$label)
+
+# Add a column that designates the data as being Adobe Analytics data
+aa_data$Platform <- "Adobe Analytics"
+
+###########################
+# Pull the Google Analytics Data
+###########################
+
+# Authenticate Google Analytics. This will need to launch a browser the
+# first time it runs, after which it should have the credentials stored. Simply
+# load library(googleAnalyticsR) and then run the one line below to do that (usually).
+ga_auth()
+
+# Get the data
+ga_data <- google_analytics_4(ga_view_id,
+                              c(start_date,end_date),
+                              metrics = metrics$google_analytics,
+                              dimensions = "date",
+                              anti_sample = TRUE)
+
+# Rename the columns to be the label value (this is so it will
+# match when we do the same with the AA data)
+colnames(ga_data) <- c("Date", metrics$label)
+
+# Add a column that designates the data as being Google Analytics data
+ga_data$Platform <- "Google Analytics"
+
+###########################
+# Combine the two data sets
+###########################
+master_data <- rbind(aa_data, ga_data)
+
+###########################
+# Visualization Setup
+###########################
+
+# Define theme for the line charts
+line_theme <-   theme_bw() +
+  theme(axis.text = element_text(size = 10, colour = "gray50"),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        axis.line.x = element_line(colour = "grey30"),
+        axis.line.y = element_blank(),
+        legend.title = element_blank(),
+        legend.background = element_blank(),
+        legend.position = "top",
+        legend.justification = "center",
+        panel.border = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.major.y = element_line(colour = "grey90"),
+        panel.grid.minor = element_blank()
+  )
+
+# Set up function to actually plot the line charts
+
+line_chart <- function(metric){
+  ggplot(master_data) +
+    geom_line(mapping = aes(x = master_data$Date,
+                            y = metric,
+                            color = master_data$Platform)) +
+    line_theme
+}
+
+```
+
+## Overview
+
+The data below is for `r start_date` to `r end_date`.
+
+--------
+
+### Unique Visitors / Users
+
+```{r users viz, echo = FALSE, fig.width = 7, fig.height = 4, fig.align = "center"}
+line_chart(master_data$`Unique Visitors/Users`)
+```
+
+--------
+
+### Visits / Sessions
+
+```{r visits viz, echo = FALSE, fig.width = 7, fig.height = 4, fig.align = "center"}
+line_chart(master_data$`Visits/Sessions`)
+```
+
+--------
+
+### Page Views
+
+```{r page views viz, echo = FALSE, fig.width = 7, fig.height = 4, fig.align = "center"}
+line_chart(master_data$`Page Views`)
+```
+
