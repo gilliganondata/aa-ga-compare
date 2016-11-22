@@ -119,12 +119,16 @@ for (i in 1:length(metrics$label)){
   # Add a new column that calculates the total difference. This simply
   # takes the current metric value and adds "Total Diff" onto the end of
   # it to make the column name. Then, it grabs both the ".aa" and ".ga"
-  # columsn for that metric and subtracts the second column from the first.
+  # columns for that metric and subtracts the second column from the first.
+  # This data doesn't currently get used anywhere, but it could be. I'd
+  # initially had an additional chart that showed the total difference
+  # in addition to the % difference, but that was getting to be overkill.
   master_diffs[,paste(metrics$label[i],"Total Diff")] <-
     select(master_diffs, contains(metrics$label[i]))[,1] -
     select(master_diffs, contains(metrics$label[i]))[,2]
  
-  # Do the same thing, but calculate the % difference 
+  # Do the same thing, but calculate the % difference. This DOES currently
+  # get used.
   master_diffs[,paste(metrics$label[i],"Percent Diff")] <-
     select(master_diffs, contains(metrics$label[i]))[,1] /
     select(master_diffs, contains(metrics$label[i]))[,2] - 1
