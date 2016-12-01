@@ -41,9 +41,9 @@ end_date <- Sys.Date()-1
 # Adobe Analytics, and the third column is the metric's name in Google Analytics.
 
 metrics <- data.frame(
-  label = c("UVs","Visits","Pageviews"),
-  adobe_analytics = c("uniquevisitors","visits","pageviews"),
-  google_analytics = c("users","sessions","pageviews"),
+  label = c("UVs","Visits","Pageviews","Orders","Revenue"),
+  adobe_analytics = c("uniquevisitors","visits","pageviews","orders","revenue"),
+  google_analytics = c("users","sessions","pageviews","transactions","transactionRevenue"),
   stringsAsFactors = FALSE)
 
 ###########################
@@ -266,6 +266,34 @@ processed_results <- summary_results("Pageviews")
 The mean daily difference between the two platforms was **`r format(round(as.numeric(mean(processed_results$daily_diffs$Diffs)), 1), nsmall=1, big.mark=",")`** page views. The median daily difference was **`r format(round(as.numeric(median(processed_results$daily_diffs$Diffs)), 1), nsmall=1, big.mark=",")`** page views. The boxplot below shows the median, quartiles, and outliers for the analyzed timeframe.
 
 ```{r pageviews charts, echo = FALSE, fig.align = "center"}
+processed_results$boxplot_diffs
+processed_results$linechart_actuals
+processed_results$linechart_percentdiff
+```
+
+## Orders / Transactions
+
+```{r orders base, echo = FALSE, fig.align = "center"}
+processed_results <- summary_results("Orders")
+```
+
+The mean daily difference between the two platforms was **`r format(round(as.numeric(mean(processed_results$daily_diffs$Diffs)), 1), nsmall=1, big.mark=",")`** orders. The median daily difference was **`r format(round(as.numeric(median(processed_results$daily_diffs$Diffs)), 1), nsmall=1, big.mark=",")`** orders. The boxplot below shows the median, quartiles, and outliers for the analyzed timeframe.
+
+```{r orders charts, echo = FALSE, fig.align = "center"}
+processed_results$boxplot_diffs
+processed_results$linechart_actuals
+processed_results$linechart_percentdiff
+```
+
+## Revenue
+
+```{r revenue base, echo = FALSE, fig.align = "center"}
+processed_results <- summary_results("Revenue")
+```
+
+The mean daily difference between the two platforms was **`r format(round(as.numeric(mean(processed_results$daily_diffs$Diffs)), 1), nsmall=1, big.mark=",")`** dollars. The median daily difference was **`r format(round(as.numeric(median(processed_results$daily_diffs$Diffs)), 1), nsmall=1, big.mark=",")`** dollars. The boxplot below shows the median, quartiles, and outliers for the analyzed timeframe.
+
+```{r revenue charts, echo = FALSE, fig.align = "center"}
 processed_results$boxplot_diffs
 processed_results$linechart_actuals
 processed_results$linechart_percentdiff
